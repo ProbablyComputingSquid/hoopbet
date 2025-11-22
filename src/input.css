@@ -6,13 +6,18 @@
     
 }
 
-.sheen {
+.sheen:hover {
     @apply bg-linear-to-r from-green-600 via-green-500 to-green-600;
     background-size: 200% auto;
     animation: sheen 5s linear infinite;
 }
-.sheen:hover {
-    @apply bg-linear-to-r from-green-700 via-green-600 to-green-700;
+.sheen {
+    @apply bg-linear-to-r from-green-800 via-green-600 to-green-800;
+    background-size: 200% auto;
+    animation: sheen 5s linear infinite;
+}
+.sheen:active {
+    @apply bg-linear-to-r from-green-900 via-green-700 to-green-900;
     background-size: 200% auto;
     animation: sheen 5s linear infinite;
 }   
@@ -26,3 +31,4 @@
         
     }
 }
+
