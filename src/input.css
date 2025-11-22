@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+
+@theme {
+    
+    
+}
+
+.sheen {
+    @apply bg-linear-to-r from-green-600 via-green-500 to-green-600;
+    background-size: 200% auto;
+    animation: sheen 5s linear infinite;
+}
+.sheen:hover {
+    @apply bg-linear-to-r from-green-700 via-green-600 to-green-700;
+    background-size: 200% auto;
+    animation: sheen 5s linear infinite;
+}   
+
+@keyframes sheen {
+    0% {
+        background-position: 200% center;
+    }
+    100% {
+        background-position: -200% center;
+        
+    }
+}
