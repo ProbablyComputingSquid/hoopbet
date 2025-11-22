@@ -1,2 +1,2 @@
-**Hoop Bet**
-Hoop bet is a small app that allows you to bet on the outcome of a silly bet.
+#Hoop Bet# 
+Hoop bet is a app providing refined microbetting capabilities!
