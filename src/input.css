@@ -1,9 +1,25 @@
 @import "tailwindcss";
 
 
-@theme {
-    
-    
+body {
+    @apply bg-neutral-900;
+}
+
+nav li a {
+    @apply text-white hover:text-blue-400;
+}
+
+h1 {
+    @apply text-shadow-blue-200 text-4xl font-extrabold text-blue-400 ;
+}
+p {
+    @apply text-white;
+}
+form {
+    @apply space-y-4 text-blue-200;
+}
+input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded bg-neutral-600;
 }
 
 .sheen:hover {
