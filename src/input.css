@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
 
+html {
+    scroll-behavior: smooth;
+}
 body {
     @apply bg-neutral-900;
 }
