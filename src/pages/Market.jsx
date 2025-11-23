@@ -97,6 +97,39 @@ export default function Market({ marketId = '' }) {
       .finally(() => setLoading(false))
 
   }, [marketId])
+  // user earnings/loss for this market
+  const [userNet, setUserNet] = useState(null)
+  const [userStake, setUserStake] = useState(0)
+
+  useEffect(() => {
+    if (!user || !market) return setUserNet(null)
+    // fetch full users.json to compute user's bets for this market
+    fetch('/users.json')
+      .then(r => r.ok ? r.json() : Promise.reject('failed'))
+      .then(json => {
+        const u = json[user.username]
+        if (!u) return setUserNet(null)
+        const bets = Array.isArray(u.bets_placed) ? u.bets_placed.filter(b => String(b.marketid) === String(market.marketid || market.id)) : []
+        let stake = 0
+        let net = 0
+        bets.forEach(b => {
+          const amt = Number(b.amount) || 0
+          stake += amt
+          if (b.payout !== undefined) {
+            net += (Number(b.payout) || 0) - amt
+          } else if (market.status === 'resolved') {
+            // resolved but no payout recorded => lost
+            net -= amt
+          } else {
+            // unresolved: show negative stake (exposure)
+            net -= amt
+          }
+        })
+        setUserStake(stake)
+        setUserNet(net)
+      })
+      .catch(() => { setUserNet(null); setUserStake(0) })
+  }, [user, market])
 
   if(loading) return <main className="p-8"><p className="text-white">Loading market...</p></main>
   if(error) return <main className="p-8"><p className="text-red-400">Error: {error}</p></main>
@@ -117,6 +150,7 @@ export default function Market({ marketId = '' }) {
 
   const sumBetsAmount = (bets) => Array.isArray(bets) ? bets.reduce((s, b) => s + (Number(b.amount) || 0), 0) : 0
   const marketVolume = market ? market.options.reduce((s, o) => s + sumBetsAmount(o.bets), 0) : 0
+
 
   async function handlePurchase(e){
     e.preventDefault()
@@ -203,7 +237,7 @@ export default function Market({ marketId = '' }) {
   return (
     <main className="p-8">
       <h1 className="text-3xl font-bold text-white">{market.name}</h1>
-      <p className="text-sm text-neutral-400">ID: {market.id} • Status: {market.status}</p>
+      <p className="text-sm text-neutral-400">ID: {market.id} • Status: {market.status} {market.resolution ? `: ${market.resolution}` : ''}</p>
       {market.description && <p className="mt-2 text-neutral-300">{market.description}</p>}
       {market.resolver && (
         <div className="mt-2 text-sm text-neutral-400">
@@ -213,6 +247,14 @@ export default function Market({ marketId = '' }) {
           ) : (
             <span className="ml-3 text-sm text-yellow-300">Unresolved</span>
           )}
+        </div>
+      )}
+
+      {user && (userNet !== null) && (
+        <div className="mt-3 p-3 bg-neutral-800 rounded">
+          <div className="text-sm text-neutral-400">Your stake on this market:</div>
+          <div className={`text-lg font-bold ${userNet >= 0 ? 'text-green-400' : 'text-red-400'}`}>{userNet >= 0 ? '+' : ''}{formatCurrency(userNet)} {market.status === 'resolved' ? '(net gain)' : '(current exposure)'}</div>
+          {userStake > 0 && <div className="text-sm text-neutral-400">(Total staked: {formatCurrency(userStake)})</div>}
         </div>
       )}
 

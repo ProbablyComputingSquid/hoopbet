@@ -213,6 +213,11 @@ app.post('/markets/resolve', (req, res) => {
         src.resolver.user = (users[resolver] && users[resolver].full_name) ? users[resolver].full_name : resolver;
         src.resolver.resolved_at = ts;
 
+        // record that this user resolved this market
+        if (!users[resolver]) users[resolver] = { password: '', joined_at: null, balance: 0, bets_placed: [] }
+        if (!Array.isArray(users[resolver].resolved_markets)) users[resolver].resolved_markets = []
+        if (!users[resolver].resolved_markets.includes(src.id || marketId)) users[resolver].resolved_markets.push(src.id || marketId)
+
         // perform payouts if resolution explicitly indicates a winning side (Yes/No)
         // determine winning key: 'yes' or 'no'
         let winKey = null

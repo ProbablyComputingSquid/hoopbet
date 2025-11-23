@@ -38,7 +38,9 @@ export default function Profile(){
                         email: stored.email || user.email || '',
                         balance: stored.balance ?? user.balance ?? 0,
                         joined_at: stored.joined_at || null,
-                        bets_placed: stored.bets_placed || []
+                        bets_placed: stored.bets_placed || [],
+                        created_markets: stored.created_markets || [],
+                        resolved_markets: stored.resolved_markets || []
                     }
                     setProfile(safe)
                 } else {
@@ -48,7 +50,9 @@ export default function Profile(){
                         full_name: user.full_name || '',
                         email: user.email || '',
                         balance: user.balance ?? 0,
-                        bets_placed: user.bets_placed || []
+                        bets_placed: user.bets_placed || [],
+                        created_markets: user.created_markets || [],
+                        resolved_markets: user.resolved_markets || []
                     })
                 }
             })
@@ -82,6 +86,19 @@ export default function Profile(){
                 </div>
                 <div className="mt-3 text-sm text-neutral-300">{profile?.email}</div>
                 {profile?.joined_at && <div className="mt-1 text-xs text-neutral-500">Joined: {fmtDate(profile.joined_at)}</div>}
+            </section>
+
+            <section className="mt-6">
+                <h2 className="text-xl font-semibold text-white">Resolved Markets</h2>
+                {(!profile?.resolved_markets || profile.resolved_markets.length === 0) ? (
+                    <p className="text-neutral-400 mt-3">You have not resolved any markets yet.</p>
+                ) : (
+                    <ul className="mt-3 space-y-2">
+                        {profile.resolved_markets.map((m, i) => (
+                            <li key={i}><a className="text-blue-400" href={`#/market/${m}`}>Market {m}</a></li>
+                        ))}
+                    </ul>
+                )}
             </section>
 
             <section className="mt-6">
