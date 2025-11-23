@@ -40,8 +40,13 @@ export default function Register(){
 
       await new Promise(res => setTimeout(res, 600))
       console.log('registration attempt', { username, password })
-      const uses = JSON.parse(fetch("/users"));
-      if(users.includes(username)){
+      
+      const serverResponse = await fetch("/users.json");
+      console.log("here")
+      console.log(serverResponse)
+      const users = await serverResponse.json();
+      console.log(users)
+      if(users.hasOwnProperty(username)){
         throw new Error('Username already taken')
       }else{
         // proceed with registration
@@ -86,7 +91,7 @@ export default function Register(){
         </div>
         <div>
           <button disabled={submitting} className="px-4 py-2 bg-green-600 text-white rounded">
-            {submitting ? 'Registering in…' : 'Register'}
+            {submitting ? 'Registering…' : 'Register'}
           </button>
         </div>
         {message && <div className="text-sm text-indigo-200">{message}</div>}

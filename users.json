@@ -1,6 +1,5 @@
 {
     "john123" : {
-        
         "full_name" : "John Doe",
         "email" : "john.doe@example.com",
         "password": "securepassword123", 
