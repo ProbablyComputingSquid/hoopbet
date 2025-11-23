@@ -6,6 +6,7 @@ import Contact from './pages/Contact'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Market from './pages/Market'
+import NotFound from './pages/NotFound'
 import './output.css'
 
 function App(){
@@ -23,7 +24,7 @@ function App(){
     else if(route.startsWith('/login')) Page = Login
     else if(route.startsWith('/register')) Page = Register
     else if (route.startsWith('/market')) Page = Market
-    else Page = Home
+    else Page = NotFound
 
         const locationKey = `${window.location.pathname}${window.location.search}${window.location.hash}`
 

@@ -7,6 +7,7 @@ async function getData() {
 }
 export default function Market() {
     console.log("Market Page Loaded");
+    console.log(getData())
   return (
     <main>
       <h1 className="text-4xl font-extrabold text-blue-400">Market - (market name) </h1>
