@@ -43,12 +43,12 @@ export default function Home() {
       <div id="title-box" className="text-center mt-8 space-y-6 bg-neutral-900">
         <h1 className="text-4xl font-extrabold text-blue-400">HoopBet</h1>
         <h2 className="text-2xl font-semibold text-indigo-600">Modern Microbetting—Reimagined</h2>
-        <button className="border border-black px-4 py-2 rounded bg-green-700 text-white sheen">Get Started</button>
+        <a href="#/register"> <button className="border border-black px-4 py-2 rounded bg-green-700 text-white sheen">Get Started</button></a>
       </div>
 
       <hr className="my-10 border-gray-700 border-t-4" />
 
-      <div id="about-hoopbet" className="text-center mt-6 space-y-6">
+      <div id="about" className="text-center mt-6 space-y-6">
         <h2 className="text-2xl font-semibold text-indigo-400">Bet On <span id="bet-flip" className="typewriter text-indigo-300">{current}</span> With Your Friends</h2>
         <p className="text-white">Ever wanted to place bets with your friends in real-time, but your friends never pay you back? With HoopBet you can place microbets on challenges, games and events as they happen.</p>
       
