@@ -31,7 +31,18 @@ function App(){
         return (
             <div>
                 <Nav />
-                <Page key={locationKey} />
+                {
+                    // If viewing a market route, extract the id segment and pass as prop so Market can fetch/render accordingly
+                    route.startsWith('/market') ? (
+                        (() => {
+                            const parts = route.split('/')
+                            const marketId = parts[2] || ''
+                            return <Page key={locationKey} marketId={marketId} />
+                        })()
+                    ) : (
+                        <Page key={locationKey} />
+                    )
+                }
                 <Footer />
             </div>
         )

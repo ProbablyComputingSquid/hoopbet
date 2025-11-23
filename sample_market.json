@@ -4,7 +4,7 @@
         "marketid": "m2024-0001",
         "options": [
             {
-                "option": "Yes",
+                "option": "Asked out, accepted",
                 "odds": 11.0,
                 "bets": [
                     {
@@ -16,8 +16,20 @@
                 ]
             },
             {
-                "option": "No",
-                "odds": 89.0,
+                "option": "Asked out, but rejected",
+                "odds": 33.0,
+                "bets": [
+                    {
+                        "user": "Charlie",
+                        "username": "Charlie_33",
+                        "amount": 2,
+                        "timestamp": "2024-06-01T10:02:00Z"
+                    }
+                ]
+            },
+            {
+                "option": "Did not ask",
+                "odds": 56.0,
                 "bets": [
                     {
                         "user": "Bob",
