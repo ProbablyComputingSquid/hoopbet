@@ -38,22 +38,19 @@ export default function Market({ marketId = '' }) {
     setError(null)
 
     // Fetch the sample markets file (replace with real API endpoint if available)
-    fetch('/sample_market.json')
+    fetch('/markets', {
+      method:'POST',
+      body: JSON.stringify({ marketId })
+    })
       .then(res => {
         if(!res.ok) throw new Error('Failed to fetch market data')
         return res.json()
       })
-      .then(json => {
-        // The sample file contains a single `market` object. In a real app you'd fetch a list or an endpoint by id.
-
-        // TODO: Evan change this to fetch by a market id
-        const candidate = json.market
-
-        const nameSlug = slugify(candidate.name)
-        if(!marketId || marketId === candidate.marketid || marketId === nameSlug){
-          setMarket(candidate)
-        } else {
+      .then(data => {
+        if(!data || !data.marketid){
           setMarket(null)
+        } else {
+          setMarket(data)
         }
       })
       .catch(err => setError(err.message))
@@ -157,26 +154,15 @@ export default function Market({ marketId = '' }) {
   return (
     <main className="p-8">
       <h1 className="text-3xl font-bold text-white">{market.name}</h1>
-      <p className="text-sm text-neutral-400">ID: {market.marketid} • Status: {market.status}</p>
+      <p className="text-sm text-neutral-400">ID: {market.id} • Status: {market.status}</p>
 
       <section className="mt-6">
         <h2 className="text-xl font-semibold text-white">Options</h2>
         <ul className="mt-3 space-y-3">
           {
             // Display the options sorted by percent (highest -> lowest)
-            sorted.map((opt, idx) => {
-              const percent = getPercent(opt)
-              const p = percent / 100
-              const hue = Math.round(p * 120) // 0 red -> 120 green
-              const startHue = hue
-              const endHue = Math.max(0, hue - 10)
-
-              const barStyle = { // need a partial fill and empty part
-                width: `${percent}%`,
-                background: `linear-gradient(90deg, hsl(${startHue} 80% 50%), hsl(${endHue} 70% 40%))`,
-                height: '1.5rem',
-                borderRadius: '0.375rem'
-              }
+            
+            }
 
               return (
                 <li key={idx} className="p-3 bg-neutral-800 rounded">
@@ -199,8 +185,7 @@ export default function Market({ marketId = '' }) {
                   </div>
                 </li>
               )
-            })
-          }
+          
         </ul>
       </section>
 

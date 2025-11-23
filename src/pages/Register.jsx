@@ -37,11 +37,21 @@ export default function Register(){
 
     try{
       // TODO: actually register 
+
       await new Promise(res => setTimeout(res, 600))
       console.log('registration attempt', { username, password })
-      setMessage('registraiton simulated (replace with real authentication).')
+      const uses = JSON.parse(fetch("/users"));
+      if(users.includes(username)){
+        throw new Error('Username already taken')
+      }else{
+        // proceed with registration
+        
+        setMessage('Registration successful! You can now log in.');
+
+      }
     }catch(err){
       setMessage('register failed — try again.')
+      setMessage(err.message);
     }finally{
       setSubmitting(false)
     }
@@ -76,7 +86,7 @@ export default function Register(){
         </div>
         <div>
           <button disabled={submitting} className="px-4 py-2 bg-green-600 text-white rounded">
-            {submitting ? 'Logging in…' : 'Login'}
+            {submitting ? 'Registering in…' : 'Register'}
           </button>
         </div>
         {message && <div className="text-sm text-indigo-200">{message}</div>}

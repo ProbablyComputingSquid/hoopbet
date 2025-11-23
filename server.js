@@ -1,5 +1,6 @@
-const express = require('express')
-const path = require ("path");
+import express from "express";
+import fs from "fs";
+import path from "path";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -31,6 +32,12 @@ app.post("/register", (req, res) => {
     fs.writeFileSync("./data/users.json", JSON.stringify( db, null, 2));
     res.json({ message: "User registered successfully" });
 });
+app.post("/markets", (req, res) => {
+    const mkitid = req.body.marketId;
+    const database = fs.readFileSync("./data/markets/market" + mkitid + ".json");
+    const db = JSON.parse(database);
+    res.json(db);
+})
     
 
 app.listen(PORT, () => {
