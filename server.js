@@ -188,6 +188,142 @@ app.post('/markets/bet', (req, res) => {
     }
 })
 
+// set resolution for a market
+app.post('/markets/resolve', (req, res) => {
+    const { marketId, resolved_at, resolver, resolution } = req.body;
+    if (!marketId || !resolver) return res.status(400).json({ message: 'Missing required fields: marketId, resolver' });
+
+    const usersPath = path.join(process.cwd(), 'data', 'users.json');
+    const marketFile = path.join(process.cwd(), 'data', 'Markets', `market${marketId}.json`);
+
+    try {
+        const usersRaw = fs.readFileSync(usersPath, 'utf8');
+        const users = JSON.parse(usersRaw);
+
+        const marketRaw = fs.readFileSync(marketFile, 'utf8');
+        const marketDb = JSON.parse(marketRaw);
+        const src = marketDb.market ? marketDb.market : marketDb;
+
+        const ts = resolved_at || new Date().toISOString();
+
+        src.resolution = resolution === undefined ? (src.resolution || 'resolved') : resolution;
+        src.status = 'resolved';
+        src.resolver = src.resolver || {};
+        src.resolver.username = resolver;
+        src.resolver.user = (users[resolver] && users[resolver].full_name) ? users[resolver].full_name : resolver;
+        src.resolver.resolved_at = ts;
+
+        const outMarket = marketDb.market ? { ...marketDb, market: src } : src;
+        fs.writeFileSync(marketFile, JSON.stringify(outMarket, null, 2), 'utf8');
+
+        // build mapped response
+        const yesBets = Array.isArray(src.yes) ? src.yes.map(b => ({ username: b.userID || b.username, amount: Number(b.amount) || 0, placed_at: b.placed_at || b.timestamp })) : []
+        const noBets = Array.isArray(src.no) ? src.no.map(b => ({ username: b.userID || b.username, amount: Number(b.amount) || 0, placed_at: b.placed_at || b.timestamp })) : []
+        const sumArr = arr => arr.reduce((s, x) => s + (Number(x.amount) || 0), 0)
+        const yesSum = sumArr(yesBets)
+        const noSum = sumArr(noBets)
+        const total = Math.max(1, yesSum + noSum)
+        const options = [
+            { option: 'Yes', odds: (yesSum/total)*100, bets: yesBets },
+            { option: 'No', odds: (noSum/total)*100, bets: noBets }
+        ]
+
+        const mapped = {
+            id: src.id || marketId,
+            marketid: src.id || marketId,
+            name: src.name || src.title || `Market ${marketId}`,
+            description: src.description || '',
+            status: src.status || 'open',
+            created_at: src.created_at,
+            ends_at: src.ends_at,
+            resolved_at: src.resolver?.resolved_at || src.resolved_at || null,
+            resolution: src.resolution || null,
+            resolver: src.resolver || null,
+            options
+        }
+
+        return res.json({ market: mapped })
+    } catch (err) {
+        console.error('Failed to set resolution:', err)
+        return res.status(500).json({ message: 'Failed to set resolution' })
+    }
+})
+
+// create a new market
+app.post('/markets/create', (req, res) => {
+    const { title, description, ends_at, username } = req.body;
+    if (!title || !username) return res.status(400).json({ message: 'Missing required fields: title, username' });
+
+    const usersPath = path.join(process.cwd(), 'data', 'users.json');
+    const marketsDir = path.join(process.cwd(), 'data', 'Markets');
+
+    try {
+        const usersRaw = fs.readFileSync(usersPath, 'utf8');
+        const users = JSON.parse(usersRaw);
+        const user = users[username];
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        // determine next market id based on existing files
+        const files = fs.readdirSync(marketsDir).filter(f => f.match(/^market(\d+)\.json$/i));
+        const nums = files.map(f => {
+            const m = f.match(/market(\d+)\.json/i);
+            return m ? parseInt(m[1], 10) : 0
+        })
+        const next = (nums.length ? Math.max(...nums) + 1 : 1);
+        const padded = String(next).padStart(3, '0');
+        const filename = `market${padded}.json`;
+        const marketId = padded;
+
+        const created_at = new Date().toISOString();
+
+        const newMarket = {
+            market: {
+                name: title,
+                description: description || '',
+                yes: [],
+                no: [],
+                status: 'open',
+                created_at,
+                ends_at: ends_at || null,
+                resolution: null,
+                resolver: {
+                    user: user.full_name || username,
+                    username,
+                    resolved_at: null
+                },
+                created_by: username,
+                id: marketId
+            }
+        }
+
+        fs.writeFileSync(path.join(marketsDir, filename), JSON.stringify(newMarket, null, 2), 'utf8');
+
+        // add to user's profile: created_markets
+        if (!Array.isArray(user.created_markets)) user.created_markets = [];
+        user.created_markets.push(marketId);
+
+        fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), 'utf8');
+
+        // return created market in the mapped frontend shape
+        const mapped = {
+            id: marketId,
+            marketid: marketId,
+            name: newMarket.market.name,
+            description: newMarket.market.description,
+            status: newMarket.market.status,
+            created_at: newMarket.market.created_at,
+            ends_at: newMarket.market.ends_at,
+            options: [ { option: 'Yes', odds: 0, bets: [] }, { option: 'No', odds: 0, bets: [] } ],
+            resolver: newMarket.market.resolver
+        }
+
+        return res.json({ market: mapped, user })
+    } catch (err) {
+        console.error('Failed to create market:', err)
+        return res.status(500).json({ message: 'Failed to create market' })
+    }
+})
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

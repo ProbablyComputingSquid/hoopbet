@@ -1,0 +1,19 @@
+{
+  "market": {
+    "name": "will we win madhacs",
+    "description": "2025 winning team!! us!!",
+    "yes": [],
+    "no": [],
+    "status": "open",
+    "created_at": "2025-11-23T17:45:34.435Z",
+    "ends_at": "2025-11-23T12:30:00-06:00Z",
+    "resolution": null,
+    "resolver": {
+      "user": "John Doe",
+      "username": "john123",
+      "resolved_at": null
+    },
+    "created_by": "john123",
+    "id": "002"
+  }
+}

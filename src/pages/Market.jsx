@@ -33,6 +33,20 @@ export default function Market({ marketId = '' }) {
     return () => { if(toastTimer.current) clearTimeout(toastTimer.current) }
   }, [])
 
+  // Resolution time picker state must be declared with other hooks
+  const [resolutionLocal, setResolutionLocal] = useState('')
+  useEffect(() => {
+    if (!market) return setResolutionLocal('')
+    // prefer market.ends_at as a candidate for resolution time
+    const iso = market.ends_at || market.resolved_at || ''
+    if (!iso) return setResolutionLocal('')
+    const dt = new Date(iso)
+    if (Number.isNaN(dt.getTime())) return setResolutionLocal('')
+    const pad = (n) => String(n).padStart(2, '0')
+    const local = `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`
+    setResolutionLocal(local)
+  }, [market])
+
   useEffect(() => {
     setLoading(true)
     setError(null)
@@ -158,10 +172,48 @@ export default function Market({ marketId = '' }) {
     }
   }
 
+  const canSetResolution = !!(user && (user.username === market?.resolver?.username || (user.created_markets || []).includes(market?.marketid)))
+
+  async function saveResolution(){
+    if (!resolutionLocal) return showToast('Pick a date and time first', 'error')
+    // convert local datetime-local value to an ISO string (assume local timezone)
+    const iso = new Date(resolutionLocal).toISOString()
+
+    try{
+      // try backend endpoint; if not available we'll update UI locally
+      const res = await fetch('/markets/resolve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ marketId: market.marketid || market.id, resolved_at: iso, resolver: user.username })
+      })
+      if (res.ok){
+        const data = await res.json()
+        if (data.market) setMarket(data.market)
+        showToast('Resolution time saved', 'success')
+        return
+      }
+    }catch(e){}
+
+    // fallback: update local UI only
+    setMarket(prev => prev ? { ...prev, resolved_at: iso, resolver: { username: user.username, user: user.full_name || user.username } } : prev)
+    showToast('Resolution time set (local only)', 'success')
+  }
+
   return (
     <main className="p-8">
       <h1 className="text-3xl font-bold text-white">{market.name}</h1>
       <p className="text-sm text-neutral-400">ID: {market.id} • Status: {market.status}</p>
+      {market.description && <p className="mt-2 text-neutral-300">{market.description}</p>}
+      {market.resolver && (
+        <div className="mt-2 text-sm text-neutral-400">
+          Resolver: <span className="text-white">{market.resolver.user || market.resolver.username}</span>
+          {market.resolved_at || market.resolution ? (
+            <span className="ml-3 text-sm text-green-300">Resolved{market.resolution ? `: ${market.resolution}` : ''}{market.resolved_at ? ` • ${new Date(market.resolved_at).toLocaleString()}` : ''}</span>
+          ) : (
+            <span className="ml-3 text-sm text-yellow-300">Unresolved</span>
+          )}
+        </div>
+      )}
 
       <section className="mt-6">
         <h2 className="text-xl font-semibold text-white">Options</h2>

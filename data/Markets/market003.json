@@ -1,0 +1,30 @@
+{
+  "market": {
+    "name": "will i drink a bublr today",
+    "description": "yes or no",
+    "yes": [
+      {
+        "userID": "john123",
+        "amount": "5",
+        "placed_at": "2025-11-23T17:48:53.239Z"
+      },
+      {
+        "userID": "john123",
+        "amount": "2",
+        "placed_at": "2025-11-23T17:57:11.354Z"
+      }
+    ],
+    "no": [],
+    "status": "open",
+    "created_at": "2025-11-23T17:48:48.529Z",
+    "ends_at": "2025-11-24T06:30:00Z",
+    "resolution": null,
+    "resolver": {
+      "user": "John Doe",
+      "username": "john123",
+      "resolved_at": null
+    },
+    "created_by": "john123",
+    "id": "003"
+  }
+}
