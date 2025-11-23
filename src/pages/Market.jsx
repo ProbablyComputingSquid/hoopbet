@@ -21,6 +21,8 @@ export default function Market({ marketId = '' }) {
       })
       .then(json => {
         // The sample file contains a single `market` object. In a real app you'd fetch a list or an endpoint by id.
+
+        // TODO: Evan change this to fetch by a market id
         const candidate = json.market
 
         const nameSlug = slugify(candidate.name)

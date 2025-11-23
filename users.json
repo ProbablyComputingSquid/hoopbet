@@ -3,6 +3,7 @@
         
         "full_name" : "John Doe",
         "email" : "john.doe@example.com",
+        "password": "securepassword123", 
         "joined_at" : "2024-05-20T14:30:00Z",
         "balance" : 150,
         "bets_placed" : [

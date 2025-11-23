@@ -11,7 +11,12 @@ body {
 nav li a {
     @apply text-white hover:text-blue-400;
 }
-
+nav li a.register {
+    @apply px-2 py-1 rounded  bg-white text-green-600 hover:text-green-800 focus:text-green-900 hover:outline-green-900 hover:outline-3;
+}
+nav li a.login {
+    @apply px-2 py-1 rounded bg-green-600 hover:bg-green-800 hover:text-white focus:bg-green-900;
+}
 h1 {
     @apply text-shadow-blue-200 text-4xl font-extrabold text-blue-400 ;
 }
