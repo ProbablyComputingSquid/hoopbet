@@ -10,78 +10,10 @@
         .typewriter::after { content: '|'; display: inline; margin-left: 6px; animation: tb-blink 1s steps(1) infinite; }
         @keyframes tb-blink { 50% { opacity: 0; } }
     </style>
+    <script type="module" src="/src/main.jsx"></script>
+    <link rel="shortcut icon" href="public/vite.svg" type="image/x-icon">
 </head>
-<body class="bg-neutral-900">
-    <div id="navbar">
-        <nav>
-            <ul class="flex justify-end space-x-5 p-5">
-                <li><a href="#title-box" class="">Home</a></li>
-                <li><a href="#about-hoopbet" class="">Features</a></li>
-                <li><a href="/contact.html" class="">Contact</a></li>
-                <li><a href="/register.html" class="">Register</a></li>
-                <li><a href="/login.html" class="px-2 py-1 rounded text-white bg-green-600 hover:bg-green-400 focus:bg-green-900">Login</a></li>
-            </ul>
-        </nav>
-    </div>
-    <div id="title-box" class="text-center mt-50 space-y-6 bg-neutral-900">
-        <h1 class=" ">HoopBet</h1>
-        <h2 class="text-2xl font-semibold text-indigo-600">Modern Microbetting—Reimagined</h2>
-        <button class="border border-black px-4 py-2 rounded bg-green-700 text-white sheen">Get Started</button>
-    </div>
-    <hr class="my-10 border-gray-700 border-t-4">
-    <div id="about-hoopbet" class="text-center mt-20 space-y-6">
-        <h2 class="text-2xl font-semibold text-indigo-400">Bet On <span id="bet-flip" class="typewriter text-indigo-300">Challenges</span>With Your Friends</h2>
-        <p class="text-white">
-            Ever wanted to place bets with your friends in real-time, but your friends never pay you back? With HoopBet you can place microbets on challenges, games and events as they happen.
-        </p>
-        <h2 class="text-2xl font-semibold text-indigo-400">Live Market Tracking</h2>
-        <p class="text-white">
-            Stay updated with real-time community odds and market trends. Our platform provides live tracking of all bets and challenges, ensuring you never miss an opportunity to win.
-        </p>
-        <h2 class="text-2xl font-semibold text-indigo-400">No House Edge</h2>
-        <p class="text-white">
-            HoopBet is for friends, and between friends. We do not interfere with your bets by taking a house cut or edge, ensuring a fair and transparent betting experience.
-        </p>
-        <h2 class="text-2xl font-semibold text-indigo-400">Community-Focused With Privacy in Mind</h2>
-        <p class="text-white">
-            HoopBet fosters a social betting environment where you can connect, compete, and celebrate wins together. All markets are resolved by a dedicated Resolver who ensures that outcomes are fair and transparent. All markets are by default private to ensure your betting activities remain confidential.
-        </p>
-    </div>
+<body>
+    <div id="root"></div>
 </body>
-    <script>
-        (function(){
-            const words = ['Challenges','Games','Wagers','Contests', 'Events'];
-            const el = document.getElementById('bet-flip');
-            let wordIndex = 0;
-            let charIndex = 0;
-            let deleting = false;
-            const typeSpeed = 100; // ms per character
-            const deleteSpeed = 50;
-            const pauseAfterFull = 1400;
-
-            function tick(){
-                const word = words[wordIndex];
-                if(!deleting){
-                    charIndex++;
-                    el.textContent = word.slice(0, charIndex);
-                    if(charIndex === word.length){
-                        deleting = true;
-                        setTimeout(tick, pauseAfterFull);
-                        return;
-                    }
-                } else {
-                    charIndex--;
-                    el.textContent = word.slice(0, charIndex);
-                    if(charIndex === 0){
-                        deleting = false;
-                        wordIndex = (wordIndex + 1) % words.length;
-                    }
-                }
-                setTimeout(tick, deleting ? deleteSpeed : typeSpeed);
-            }
-
-            // start slightly delayed so it doesn't clash with initial paint
-            setTimeout(tick, 500);
-        })();
-    </script>
 </html>
