@@ -40,13 +40,24 @@ export default function Home() {
 
   return (
     <main>
-      <div id="title-box" className="text-center mt-8 space-y-6 bg-neutral-900">
-        <h1 className="text-4xl font-extrabold text-blue-400">HoopBet</h1>
-        <h2 className="text-2xl font-semibold text-indigo-600">Modern Microbetting—Reimagined</h2>
-        <a href="#/register"> <button className="border border-black px-4 py-2 rounded bg-green-700 text-white sheen">Get Started</button></a>
-      </div>
+      <div id="title-box" className="relative text-center mt-8 space-y-12 bg-neutral-900 w-3/4 h-3/4 mx-auto max-w-4xl">
+        <div className="relative z-10 py-6">
+          <h1 >HoopBet</h1>
+          <h2 className="text-2xl font-semibold text-indigo-600">Modern Microbetting—Reimagined</h2>
+          </div>
 
-      <hr className="my-10 border-gray-700 border-t-4" />
+          
+          <a href="#/register"> <button className="border border-black px-4 py-2 rounded bg-green-700 text-white sheen">Get Started</button></a>
+        
+
+        {/* HR visually belongs to the title box so the glow can align with it */}
+        <hr className="mx-auto mt-2 w-full border-t-4 border-gray-700" />
+
+        {/* Full-width indigo glow / spotlight along the HR */}
+        <div className="absolute left-0 right-0 -bottom-3 h-6 pointer-events-none z-0">
+          <div className="mx-auto w-full h-6 bg-linear-to-b from-transparent to-indigo-500 opacity-60 blur-xl rounded-full" />
+        </div>
+      </div>
 
       <div id="about" className="text-center mt-6 space-y-6">
         <h2 className="text-2xl font-semibold text-indigo-400">Bet On <span id="bet-flip" className="typewriter text-indigo-300">{current}</span> With Your Friends</h2>

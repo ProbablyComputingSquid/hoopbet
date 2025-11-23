@@ -24,7 +24,7 @@ export default function Profile(){
         // Try to enrich the user object with full data (bets, joined_at) from users.json if available
         setLoading(true)
         setError('')
-        fetch('/users.json')
+        fetch('/users.json') // TODO @evan - fetch actual API endpoint for user profile data
             .then(res => {
                 if(!res.ok) throw new Error('Failed to fetch user data')
                 return res.json()
@@ -69,11 +69,10 @@ export default function Profile(){
 
     return (
         <main className="p-8">
-            <h1 className="text-2xl font-semibold">Profile</h1>
             <section className="mt-4 p-4 bg-neutral-800 rounded">
                 <div className="flex items-center justify-between">
                     <div>
-                        <div className="text-lg text-white font-semibold">{profile?.full_name || profile?.username}</div>
+                        <h1 className="text-2xl font-semibold">{profile?.full_name || profile?.username}</h1>
                         <div className="text-sm text-neutral-400">@{profile?.username}</div>
                     </div>
                     <div className="text-right">

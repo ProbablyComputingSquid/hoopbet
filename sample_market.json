@@ -17,7 +17,7 @@
             },
             {
                 "option": "Asked out, but rejected",
-                "odds": 33.0,
+                "odds": 73.0,
                 "bets": [
                     {
                         "user": "Charlie",
@@ -29,7 +29,7 @@
             },
             {
                 "option": "Did not ask",
-                "odds": 56.0,
+                "odds": 16.0,
                 "bets": [
                     {
                         "user": "Bob",
