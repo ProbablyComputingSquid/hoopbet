@@ -35,6 +35,7 @@ export default function Market({ marketId = '' }) {
 
   // Resolution time picker state must be declared with other hooks
   const [resolutionLocal, setResolutionLocal] = useState('')
+  const [resolutionChoice, setResolutionChoice] = useState('')
   useEffect(() => {
     if (!market) return setResolutionLocal('')
     // prefer market.ends_at as a candidate for resolution time
@@ -184,7 +185,7 @@ export default function Market({ marketId = '' }) {
       const res = await fetch('/markets/resolve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ marketId: market.marketid || market.id, resolved_at: iso, resolver: user.username })
+        body: JSON.stringify({ marketId: market.marketid || market.id, resolved_at: iso, resolver: user.username, resolution: resolutionChoice || undefined })
       })
       if (res.ok){
         const data = await res.json()
@@ -212,6 +213,45 @@ export default function Market({ marketId = '' }) {
           ) : (
             <span className="ml-3 text-sm text-yellow-300">Unresolved</span>
           )}
+        </div>
+      )}
+
+      {/* Resolver controls: pick resolution outcome and datetime, then resolve & payout */}
+      {canSetResolution && market.status !== 'resolved' && (
+        <div className="mt-4 p-4 bg-neutral-800 rounded">
+          <div className="flex gap-3 items-center">
+            <label className="text-sm text-neutral-300">Resolve As</label>
+            <select value={resolutionChoice} onChange={e => setResolutionChoice(e.target.value)} className="px-2 py-1 rounded bg-neutral-700 text-white">
+              <option value="">-- choose outcome --</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+
+            <label className="text-sm text-neutral-300">Resolve At</label>
+            <input type="datetime-local" value={resolutionLocal} onChange={e => setResolutionLocal(e.target.value)} className="px-2 py-1 rounded bg-neutral-700 text-white" />
+
+            <button onClick={saveResolution} type="button" className="px-3 py-1 bg-blue-600 text-white rounded">Save Time</button>
+            <button onClick={async () => {
+              if(!resolutionChoice) return showToast('Pick an outcome to resolve', 'error')
+              if(!resolutionLocal) return showToast('Pick a date/time to resolve', 'error')
+              // call resolve endpoint with resolution to trigger payouts
+              try{
+                const res = await fetch('/markets/resolve', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ marketId: market.marketid || market.id, resolved_at: new Date(resolutionLocal).toISOString(), resolver: user.username, resolution: resolutionChoice })
+                })
+                if(!res.ok) throw new Error(await res.text().catch(()=>res.statusText))
+                const data = await res.json()
+                if(data.market) setMarket(data.market)
+                // update current user if server returned users map
+                if(data.users && user && data.users[user.username] && updateUser) updateUser(data.users[user.username])
+                showToast('Market resolved and payouts distributed', 'success')
+              }catch(err){
+                showToast('Failed to resolve market: ' + (err.message||''), 'error')
+              }
+            }} type="button" className="px-3 py-1 bg-green-600 text-white rounded">Resolve & Payout</button>
+          </div>
         </div>
       )}
 

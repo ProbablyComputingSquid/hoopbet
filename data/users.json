@@ -37,7 +37,15 @@
   "jjohn123": {
     "password": "pwassword1",
     "joined_at": "2025-11-23T12:00:00Z",
-    "balance": 10,
-    "bets_placed": []
+    "balance": 8,
+    "bets_placed": [
+      {
+        "marketid": "002",
+        "option": "Yes",
+        "amount": 2,
+        "odds": 100,
+        "placed_at": "2025-11-23T17:59:03.001Z"
+      }
+    ]
   }
 }

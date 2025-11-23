@@ -213,15 +213,64 @@ app.post('/markets/resolve', (req, res) => {
         src.resolver.user = (users[resolver] && users[resolver].full_name) ? users[resolver].full_name : resolver;
         src.resolver.resolved_at = ts;
 
+        // perform payouts if resolution explicitly indicates a winning side (Yes/No)
+        // determine winning key: 'yes' or 'no'
+        let winKey = null
+        if (typeof src.resolution === 'string') {
+            const r = src.resolution.trim().toLowerCase()
+            if (r === 'yes' || r === 'y' || r === 'true') winKey = 'yes'
+            else if (r === 'no' || r === 'n' || r === 'false') winKey = 'no'
+            else if (r === 'yes' || r === 'no') winKey = r
+        }
+
+        // fallback: if resolution param provided in request, use that
+        if (!winKey && typeof resolution === 'string') {
+            const r2 = resolution.trim().toLowerCase()
+            if (r2 === 'yes' || r2 === 'y') winKey = 'yes'
+            else if (r2 === 'no' || r2 === 'n') winKey = 'no'
+        }
+
+        // compute payouts
+        const yesArr = Array.isArray(src.yes) ? src.yes : []
+        const noArr = Array.isArray(src.no) ? src.no : []
+        const sum = (arr) => arr.reduce((s, b) => s + (Number(b.amount) || 0), 0)
+        const yesSum = sum(yesArr)
+        const noSum = sum(noArr)
+
+        // winners get: stake + proportional share of losers' pool (no house fee)
+        if (winKey === 'yes' || winKey === 'no') {
+            const winners = winKey === 'yes' ? yesArr : noArr
+            const losersTotal = winKey === 'yes' ? noSum : yesSum
+            const winnersTotal = winKey === 'yes' ? yesSum : noSum
+
+            if (winnersTotal > 0 && losersTotal > 0) {
+                // credit each winner
+                winners.forEach(b => {
+                    const uid = b.userID || b.username
+                    const stake = Number(b.amount) || 0
+                    const share = (stake / winnersTotal) * losersTotal
+                    const payout = stake + share
+                    if (!users[uid]) return
+                    users[uid].balance = (Number(users[uid].balance) || 0) + payout
+
+                    // mark user's bets_placed entry if exists
+                    if (!Array.isArray(users[uid].bets_placed)) users[uid].bets_placed = []
+                    const idx = users[uid].bets_placed.findIndex(bp => bp.marketid === (src.id || marketId) && bp.option === (winKey === 'yes' ? 'Yes' : 'No'))
+                    if (idx >= 0) {
+                        users[uid].bets_placed[idx].resolved = true
+                        users[uid].bets_placed[idx].payout = (users[uid].bets_placed[idx].payout || 0) + payout
+                    }
+                })
+            }
+        }
+
         const outMarket = marketDb.market ? { ...marketDb, market: src } : src;
         fs.writeFileSync(marketFile, JSON.stringify(outMarket, null, 2), 'utf8');
+        fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), 'utf8');
 
         // build mapped response
         const yesBets = Array.isArray(src.yes) ? src.yes.map(b => ({ username: b.userID || b.username, amount: Number(b.amount) || 0, placed_at: b.placed_at || b.timestamp })) : []
         const noBets = Array.isArray(src.no) ? src.no.map(b => ({ username: b.userID || b.username, amount: Number(b.amount) || 0, placed_at: b.placed_at || b.timestamp })) : []
-        const sumArr = arr => arr.reduce((s, x) => s + (Number(x.amount) || 0), 0)
-        const yesSum = sumArr(yesBets)
-        const noSum = sumArr(noBets)
         const total = Math.max(1, yesSum + noSum)
         const options = [
             { option: 'Yes', odds: (yesSum/total)*100, bets: yesBets },
@@ -242,7 +291,7 @@ app.post('/markets/resolve', (req, res) => {
             options
         }
 
-        return res.json({ market: mapped })
+        return res.json({ market: mapped, users })
     } catch (err) {
         console.error('Failed to set resolution:', err)
         return res.status(500).json({ message: 'Failed to set resolution' })
