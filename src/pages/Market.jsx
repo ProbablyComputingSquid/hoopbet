@@ -37,21 +37,46 @@ export default function Market({ marketId = '' }) {
     setLoading(true)
     setError(null)
 
-    // Fetch the sample markets file (replace with real API endpoint if available)
+    // Fetch the real market from backend POST /markets
     fetch('/markets', {
-      method:'POST',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ marketId })
     })
       .then(res => {
-        if(!res.ok) throw new Error('Failed to fetch market data')
+        if (!res.ok) throw new Error('Failed to fetch market data')
         return res.json()
       })
       .then(data => {
-        if(!data || !data.marketid){
-          setMarket(null)
-        } else {
-          setMarket(data)
+        // backend returns the JSON file content. Support both { market: { ... } } and direct shapes
+        const src = data && data.market ? data.market : data
+        if (!src) return setMarket(null)
+
+        // build options array from typical data/Markets files which contain `yes` and `no` arrays
+        const yesBets = Array.isArray(src.yes) ? src.yes.map(b => ({ username: b.userID || b.username, amount: Number(b.amount) || 0, placed_at: b.placed_at || b.timestamp })) : []
+        const noBets = Array.isArray(src.no) ? src.no.map(b => ({ username: b.userID || b.username, amount: Number(b.amount) || 0, placed_at: b.placed_at || b.timestamp })) : []
+
+        const sum = arr => arr.reduce((s, x) => s + (Number(x.amount) || 0), 0)
+        const yesSum = sum(yesBets)
+        const noSum = sum(noBets)
+        const total = Math.max(1, yesSum + noSum)
+
+        const options = [
+          { option: 'Yes', odds: (yesSum / total) * 100, bets: yesBets },
+          { option: 'No', odds: (noSum / total) * 100, bets: noBets }
+        ]
+
+        const mapped = {
+          id: src.id || marketId,
+          marketid: src.id || marketId,
+          name: src.name || src.title || `Market ${marketId}`,
+          status: src.status || 'open',
+          created_at: src.created_at,
+          ends_at: src.ends_at,
+          options
         }
+
+        setMarket(mapped)
       })
       .catch(err => setError(err.message))
       .finally(() => setLoading(false))
@@ -159,33 +184,30 @@ export default function Market({ marketId = '' }) {
       <section className="mt-6">
         <h2 className="text-xl font-semibold text-white">Options</h2>
         <ul className="mt-3 space-y-3">
-          {
-            // Display the options sorted by percent (highest -> lowest)
-            
-            }
+          {sorted.map((opt, idx) => {
+            const percent = Math.round(getPercent(opt))
+            const barStyle = { width: `${percent}%`, height: '100%', background: '#10b981', borderRadius: '0.375rem' }
 
-              return (
-                <li key={idx} className="p-3 bg-neutral-800 rounded">
-                  <div className="mb-2 flex items-center justify-between">
-                    <div>
-                      <div className="text-lg text-white">{opt.option}</div>
-                      <div className="text-sm text-neutral-400">Probability: {percent}%</div>
-                      {user && (
-                        (() => {
-                          const myBet = (opt.bets || []).find(b => b.username === user.username)
-                          if(!myBet) return null
-                          return <div className="text-sm text-green-300 mt-1">Your stake: {formatCurrency(myBet.amount)}</div>
-                        })()
-                      )}
-                    </div>
-                    <div className="text-sm text-neutral-300">Bets: {opt.bets?.length || 0}</div>
+            return (
+              <li key={idx} className="p-3 bg-neutral-800 rounded">
+                <div className="mb-2 flex items-center justify-between">
+                  <div>
+                    <div className="text-lg text-white">{opt.option}</div>
+                    <div className="text-sm text-neutral-400">Probability: {percent}%</div>
+                    {user && (() => {
+                      const myBet = (opt.bets || []).find(b => b.username === user.username)
+                      if (!myBet) return null
+                      return <div className="text-sm text-green-300 mt-1">Your stake: {formatCurrency(myBet.amount)}</div>
+                    })()}
                   </div>
-                  <div className="w-full bg-neutral-700 rounded " style={{height: '1.5rem'}}>
-                    <div style={barStyle} />
-                  </div>
-                </li>
-              )
-          
+                  <div className="text-sm text-neutral-300">Bets: {opt.bets?.length || 0}</div>
+                </div>
+                <div className="w-full bg-neutral-700 rounded " style={{ height: '1.5rem' }}>
+                  <div style={barStyle} />
+                </div>
+              </li>
+            )
+          })}
         </ul>
       </section>
 

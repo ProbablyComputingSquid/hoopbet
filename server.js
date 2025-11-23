@@ -2,7 +2,7 @@ import express from "express";
 import fs from "fs";
 import path from "path";
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 // parse JSON bodies for incoming requests (must be before routes that use req.body)
 app.use(express.json());
