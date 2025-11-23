@@ -85,6 +85,109 @@ app.post("/markets", (req, res) => {
     }
 });
 
+// place a bet: update market file and user file
+app.post('/markets/bet', (req, res) => {
+    const { marketId, optionIndex, optionName, amount, username, placed_at } = req.body;
+    if (!marketId || !username || !amount) {
+        return res.status(400).json({ message: 'Missing required fields: marketId, username, amount' });
+    }
+
+    const usersPath = path.join(process.cwd(), 'data', 'users.json');
+    const marketFile = path.join(process.cwd(), 'data', 'Markets', `market${marketId}.json`);
+
+    try {
+        // load users
+        const usersRaw = fs.readFileSync(usersPath, 'utf8');
+        const users = JSON.parse(usersRaw);
+        const user = users[username];
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const numericAmount = Number(amount);
+        if (!Number.isFinite(numericAmount) || numericAmount <= 0) return res.status(400).json({ message: 'Invalid amount' });
+
+        if ((Number(user.balance) || 0) < numericAmount) return res.status(400).json({ message: 'Insufficient balance' });
+
+        // load market
+        const marketRaw = fs.readFileSync(marketFile, 'utf8');
+        const marketDb = JSON.parse(marketRaw);
+        const src = marketDb.market ? marketDb.market : marketDb;
+
+        // determine target array (yes/no)
+        let targetKey = null;
+        if (typeof optionIndex === 'number') {
+            targetKey = optionIndex === 0 ? 'yes' : 'no';
+        } else if (optionName) {
+            const n = String(optionName).toLowerCase();
+            targetKey = n.startsWith('y') ? 'yes' : 'no';
+        } else {
+            // default to yes if ambiguous
+            targetKey = 'yes';
+        }
+
+        if (!Array.isArray(src[targetKey])) src[targetKey] = [];
+
+        const ts = placed_at || new Date().toISOString();
+
+        // push a market bet entry (keep types similar to sample: userID and string amount)
+        src[targetKey].push({ userID: username, amount: String(numericAmount), placed_at: ts });
+
+        // update users: deduct balance and add/merge bets_placed
+        const prevBalance = Number(user.balance) || 0;
+        user.balance = prevBalance - numericAmount;
+
+        if (!Array.isArray(user.bets_placed)) user.bets_placed = [];
+
+        const optionLabel = targetKey === 'yes' ? 'Yes' : 'No';
+        const existingIndex = user.bets_placed.findIndex(b => b.marketid === marketId && b.option === optionLabel);
+        if (existingIndex >= 0) {
+            user.bets_placed[existingIndex].amount = (Number(user.bets_placed[existingIndex].amount) || 0) + numericAmount;
+            user.bets_placed[existingIndex].placed_at = ts;
+        } else {
+            // compute a naive odds value: percentage of yes vs no
+            const sum = (arr) => (Array.isArray(arr) ? arr.reduce((s, x) => s + (Number(x.amount) || 0), 0) : 0)
+            const yesSum = sum(src.yes)
+            const noSum = sum(src.no)
+            const total = Math.max(1, yesSum + noSum)
+            const odds = targetKey === 'yes' ? (yesSum/total)*100 : (noSum/total)*100
+
+            user.bets_placed.push({ marketid: marketId, option: optionLabel, amount: numericAmount, odds, placed_at: ts })
+        }
+
+        // write files back
+        // write market file preserving original wrapper if present
+        const outMarket = marketDb.market ? { ...marketDb, market: src } : src;
+        fs.writeFileSync(marketFile, JSON.stringify(outMarket, null, 2), 'utf8');
+        fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), 'utf8');
+
+        // return the mapped market (same shape as /markets mapping) and updated user
+        const yesBets = Array.isArray(src.yes) ? src.yes.map(b => ({ username: b.userID || b.username, amount: Number(b.amount) || 0, placed_at: b.placed_at || b.timestamp })) : []
+        const noBets = Array.isArray(src.no) ? src.no.map(b => ({ username: b.userID || b.username, amount: Number(b.amount) || 0, placed_at: b.placed_at || b.timestamp })) : []
+        const sumArr = arr => arr.reduce((s, x) => s + (Number(x.amount) || 0), 0)
+        const yesSum = sumArr(yesBets)
+        const noSum = sumArr(noBets)
+        const total = Math.max(1, yesSum + noSum)
+        const options = [
+            { option: 'Yes', odds: (yesSum/total)*100, bets: yesBets },
+            { option: 'No', odds: (noSum/total)*100, bets: noBets }
+        ]
+
+        const mapped = {
+            id: src.id || marketId,
+            marketid: src.id || marketId,
+            name: src.name || src.title || `Market ${marketId}`,
+            status: src.status || 'open',
+            created_at: src.created_at,
+            ends_at: src.ends_at,
+            options
+        }
+
+        return res.json({ market: mapped, user })
+    } catch (err) {
+        console.error('Failed to place bet:', err)
+        return res.status(500).json({ message: 'Failed to place bet' })
+    }
+})
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

@@ -4,15 +4,22 @@
     "email": "john.doe@example.com",
     "password": "securepassword123",
     "joined_at": "2024-05-20T14:30:00Z",
-    "balance": 150,
+    "balance": 58,
     "bets_placed": [
       {
         "name": "Josh-Jane Get together for hoco?",
         "marketid": "001",
         "option": "Yes",
-        "amount": 10,
+        "amount": 35,
         "odds": 11,
-        "placed_at": "2024-06-02T12:00:00Z"
+        "placed_at": "2025-11-23T17:38:19.075Z"
+      },
+      {
+        "marketid": "001",
+        "option": "No",
+        "amount": 67,
+        "odds": 67.28971962616822,
+        "placed_at": "2025-11-23T17:38:30.570Z"
       }
     ]
   },

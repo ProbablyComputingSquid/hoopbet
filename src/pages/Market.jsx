@@ -100,6 +100,9 @@ export default function Market({ marketId = '' }) {
 
   const sorted = market ? [...market.options].sort((a, b) => getPercent(b) - getPercent(a)) : []
 
+  const sumBetsAmount = (bets) => Array.isArray(bets) ? bets.reduce((s, b) => s + (Number(b.amount) || 0), 0) : 0
+  const marketVolume = market ? market.options.reduce((s, o) => s + sumBetsAmount(o.bets), 0) : 0
+
   async function handlePurchase(e){
     e.preventDefault()
     setPurchaseError('')
@@ -127,47 +130,26 @@ export default function Market({ marketId = '' }) {
 
     setSubmittingPurchase(true)
     try{
-      // Build bet object values
-      const opt = market.options[selectedOption]
-      const placed_at = new Date().toISOString()
-
-      // Update local market state: consolidate bets by username for the same option
-      setMarket(prev => {
-        if(!prev) return prev
-        const newOptions = prev.options.map((o, i) => {
-          if(i !== selectedOption) return o
-          const bets = Array.isArray(o.bets) ? [...o.bets] : []
-          const existingIndex = bets.findIndex(b => b.username === user.username)
-          if(existingIndex >= 0){
-            // increase existing bet amount and update timestamp
-            const existing = { ...bets[existingIndex] }
-            existing.amount = (Number(existing.amount) || 0) + amount
-            existing.timestamp = placed_at
-            bets[existingIndex] = existing
-          } else {
-            // add new bet entry
-            bets.push({ user: user.full_name || user.username, username: user.username, amount, odds: Number(opt.odds), timestamp: placed_at })
-          }
-          return { ...o, bets }
+        // send bet to backend to persist
+        const placed_at = new Date().toISOString()
+        const resp = await fetch('/markets/bet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ marketId: market.marketid || marketId, optionIndex: selectedOption, amount, username: user.username, placed_at })
         })
-        return { ...prev, options: newOptions }
-      })
-
-      // Update user's local bets_placed and balance (consolidate by marketid+option)
-      try{
-        const prevBets = Array.isArray(user.bets_placed) ? [...user.bets_placed] : []
-        const betIndex = prevBets.findIndex(b => b.marketid === market.marketid && b.option === opt.option)
-        if(betIndex >= 0){
-          prevBets[betIndex] = { ...prevBets[betIndex], amount: (Number(prevBets[betIndex].amount) || 0) + amount, placed_at }
-        } else {
-          prevBets.push({ marketid: market.marketid, option: opt.option, amount, odds: opt.odds, placed_at })
+        if(!resp.ok) {
+          const errText = await resp.text().catch(()=>null) || resp.statusText
+          throw new Error(errText || 'Failed to place bet')
         }
-        updateUser && updateUser({ balance: Math.max(0, balance - amount), bets_placed: prevBets })
-      }catch(e){}
 
-      setPurchaseMessage('Bet placed successfully!')
-      showToast(`Bet placed: $${amount.toFixed(2)} on "${opt.option}"`, 'success')
-      setPurchaseAmount('')
+        const data = await resp.json()
+        // backend returns { market, user }
+        if(data.market) setMarket(data.market)
+        if(data.user && updateUser) updateUser(data.user)
+
+        setPurchaseMessage('Bet placed successfully!')
+        showToast(`Bet placed: $${amount.toFixed(2)} on "${(market.options[selectedOption]||{}).option}"`, 'success')
+        setPurchaseAmount('')
     }catch(err){
       setPurchaseError('Failed to place bet — try again.')
       showToast('Failed to place bet — try again.', 'error')
@@ -183,9 +165,11 @@ export default function Market({ marketId = '' }) {
 
       <section className="mt-6">
         <h2 className="text-xl font-semibold text-white">Options</h2>
+        <div className="mb-4 text-sm text-neutral-300">Total market volume: <span className="text-white">{formatCurrency(marketVolume)}</span></div>
         <ul className="mt-3 space-y-3">
           {sorted.map((opt, idx) => {
             const percent = Math.round(getPercent(opt))
+            const optVolume = sumBetsAmount(opt.bets)
             const barStyle = { width: `${percent}%`, height: '100%', background: '#10b981', borderRadius: '0.375rem' }
 
             return (
@@ -195,12 +179,13 @@ export default function Market({ marketId = '' }) {
                     <div className="text-lg text-white">{opt.option}</div>
                     <div className="text-sm text-neutral-400">Probability: {percent}%</div>
                     {user && (() => {
-                      const myBet = (opt.bets || []).find(b => b.username === user.username)
-                      if (!myBet) return null
-                      return <div className="text-sm text-green-300 mt-1">Your stake: {formatCurrency(myBet.amount)}</div>
+                      // sum all bets by this user for this option
+                      const myStake = (opt.bets || []).reduce((s, b) => s + ((b.username === user.username) ? (Number(b.amount) || 0) : 0), 0)
+                      if (!myStake) return null
+                      return <div className="text-sm text-green-300 mt-1">Your stake: {formatCurrency(myStake)}</div>
                     })()}
                   </div>
-                  <div className="text-sm text-neutral-300">Bets: {opt.bets?.length || 0}</div>
+                  <div className="text-sm text-neutral-300">Bets: {opt.bets?.length || 0} • Volume: {formatCurrency(optVolume)}</div>
                 </div>
                 <div className="w-full bg-neutral-700 rounded " style={{ height: '1.5rem' }}>
                   <div style={barStyle} />
