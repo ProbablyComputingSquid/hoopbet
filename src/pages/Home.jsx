@@ -40,21 +40,44 @@ export default function Home() {
 
   return (
     <main>
-      <div id="title-box" className="relative text-center mt-8 space-y-12 bg-neutral-900 w-3/4 h-3/4 mx-auto max-w-4xl">
-        <div className="relative z-10 py-6">
-          <h1 >HoopBet</h1>
-          <h2 className="text-2xl font-semibold text-indigo-600">Modern Microbetting—Reimagined</h2>
-          </div>
+      
 
-          
-          <a href="#/register"> <button className="border border-black px-4 py-2 rounded bg-green-700 text-white sheen">Get Started</button></a>
-        
+      <div id="title-box" className="relative text-center mt-0 space-y-12  h-[75vh] mx-auto w-full">
+        {/* Animated repeating background layer (fills and scrolls horizontally) */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+            <div style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              height: '100%',
+              width: '200%',
+              backgroundImage: "url('assets/iphone-mockup.png')",
+              backgroundRepeat: 'repeat-x',
+              backgroundPosition: 'center top',
+              backgroundSize: 'contain',
+              transform: 'translateX(0%)',
+              animation: 'hoopbet-scroll 40s linear infinite'
+            }} />
+          </div>
+        </div>
+
+        {/* Background overlay (blur + darken) so title text pops */}
+        <div className="absolute inset-0 pointer-events-none z-10">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-md" />
+        </div>
+
+        <div className="relative z-30 py-6">
+          <h1 className="text-4xl font-extrabold text-blue-400">HoopBet</h1>
+          <h2 className="py-2 text-2xl font-semibold text-indigo-600">Modern Microbetting—Reimagined</h2>
+          <a href="#/register"> <button className="border border-black px-4 py-2 my-4 rounded bg-green-700 text-white sheen">Get Started</button></a>
+        </div>
 
         {/* HR visually belongs to the title box so the glow can align with it */}
-        <hr className="mx-auto mt-2 w-full border-t-4 border-gray-700" />
+        <hr className="mx-auto w-full border-t-4 border-gray-700" />
 
         {/* Full-width indigo glow / spotlight along the HR */}
-        <div className="absolute left-0 right-0 -bottom-3 h-6 pointer-events-none z-0">
+        <div className="absolute left-0 right-0 -bottom-3 h-6 pointer-events-none z-40">
           <div className="mx-auto w-full h-6 bg-linear-to-b from-transparent to-indigo-500 opacity-60 blur-xl rounded-full" />
         </div>
       </div>
