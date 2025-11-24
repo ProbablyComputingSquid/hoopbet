@@ -1,16 +1,31 @@
-# React + Vite
+# hoopbet - p2p microbetting
+<img src="src/assets/HOOP-logo.png" width="100px">
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+###### modern microbetting - reimagined
 
-Currently, two official plugins are available:
+made for [madhacks](https://madhacks.io)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Small scale micro betting re imagined for the 21st century. Create wagers on games, events, and so much more for your friends, than bet on them. Small scale, and built on trust. 
 
-## React Compiler
+## features
+- user registration and creation
+- market creation and resolution
+- profile view with bet tracking
+- distribution of virtual currency for betting
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## how we built hoopbet
+hoopbet's frontend is built with [react](https://react.dev/) + [vite](https://vite.dev/) to allow for reusable components and ease of access to backend servers. this also allowed hot-reloading for development and the implementation of further abstranctions for simplified development process. styling is done for the most part in [tailwind](https://tailwindcss.com/) which gives us the sweet spot between the over-abstraction of bootstrap and the controllability of (S)CSS.
 
-## Expanding the ESLint configuration
+hoopbet's backend is an [express](https://expressjs.com/) server which serves json files to store user data, which enables a smooth integration with javascript that does not rely on more external frameworks. 
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## challenges we ran into
+
+There were numerous issues we encountered early in the devlopment process, namely deciding which frameworks would be the best to make this project in. We spent a long time dithering over minutae, which in the end, did not matter as much as the core functionality of this project. We spent a long time looking at the trees instead of the forest. Another issue we faced was vscode's live share feature being too slow for the development process, so we had to delegate tasks for each other and communicate well to avoid merge conflicts. 
+
+another large issue we faced was that our original project idea. we had planned to integrate stripe, but our project is against the stripe TOS which meant this would not work. 
+
+## features in planning
+- invitation-locked markets
+- better ui for resolution
+- leaderboards
+- betting groups
